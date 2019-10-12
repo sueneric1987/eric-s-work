@@ -1,0 +1,1103 @@
+Spring 配置
+Spring源码分析 http://konglx.iteye.com/blog/1848289
+如何配置spring http://blog.csdn.net/yejin191258966/article/details/40835031
+servlet 3.0 项目模块化  http://haohaoxuexi.iteye.com/blog/2017099
+
+获取spring context :  (Bean)SpringContextUtil.getSpringContext().getBean("beanName")
+要使用spring的依赖注入，属性必须要有set方法
+1、在web.xml中配置
+<context-param>
+		<description>Spring的配置文件路径</description>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/conf/*beans.xml;/WEB-INF/conf/context-*.xml</param-value>
+	</context-param>
+2、在web.xml中增加监听
+<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+
+Spring学习记录：
+Spring docs : http://spring.io/docs/reference
+Spring 注解： http://blog.csdn.net/xyh820/article/details/7303330/
+关于component-scan用法 http://blog.csdn.net/chunqiuwei/article/details/16115135
+
+http://elf8848.iteye.com/blog/875830/
+1、加载properties文件内容，使用PropertyPlaceholderConfigurer
+   配置如下：
+    <bean id="placeHolder" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>WEB-INF/conf/jdbc.properties</value>
+                <value>WEB-INF/conf/quartz.properties</value>
+            </list>
+        </property>
+    </bean>
+
+
+2、拦截器事务管理:http://www.cnblogs.com/leiOOlei/p/3556054.html
+   使用BeanNameAutoProxyCreator(自动创建proxy）
+   配置如下：
+   <bean id="autoProxyCreator" class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+        <description>对所有符合名字规则的对象使用指定的Interceptor</description>
+        <property name="beanNames">
+        	<list>
+            	<value>*Service</value>
+            </list>
+        </property>
+
+
+        <property name="interceptorNames">
+            <list>
+                <value>transactionInterceptor</value>
+                <value>transactionInterceptorII</value>
+            </list>
+        </property>
+    </bean>
+
+
+    <bean id="transactionInterceptor" class="org.springframework.transaction.interceptor.TransactionInterceptor">
+        <property name="transactionManager" ref="transactionManager" />
+        <property name="transactionAttributeSource">
+            <ref bean="matchAllWithPropReq" />
+        </property>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    
+
+    <bean id="matchAllWithPropReq" class="org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource">
+        <description>对所有的事务场景都使用一个相同的事务规则.支持当前事务，如果当前没有事务，就新建一个事务</description>
+        <property name="transactionAttribute">
+            <value>PROPAGATION_REQUIRED</value>
+        </property>
+    </bean>
+    
+    Spring propagation :   http://blog.csdn.net/kiwi_coder/article/details/20214939
+
+3、spring中配置ibatis
+http://www.cnblogs.com/kelin1314/archive/2009/01/05/1369864.html
+
+<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+    	<description>iBatis配置</description>
+    	<property name="dataSource" ref="dataSource"/>
+    	<property name="configLocation" value="WEB-INF/ibatis/ibatis-config-t.xml"/>
+    </bean>
+
+ibatis相关配置在ibatis-config-t.xml中，包括写sql的xml
+
+BaseDao的配置  extends SqlMapClientSupport
+<bean id="baseDao" abstract="true" class="cn.mr.gims.persistence.framework.BaseDao" init-method="initialize">
+        <property name="dataSource">
+            <ref bean="dataSource" />
+        </property>
+        <property name="sqlMapClient">
+            <ref bean="sqlMapClient" />
+        </property>
+        <property name="sqlExecutor">
+            <ref bean="sqlExecutor" />
+        </property>
+    </bean>
+所有的实现的dao，需要extends BaseDao
+
+<bean id="sqlExecutor" class="cn.mr.gims.persistence.framework.GimsSqlExecutor">
+        <property name="dialect">
+            <bean class="cn.mr.gims.persistence.framework.OracleDialect" />
+        </property>
+    </bean>
+
+sqlExecutor可以继承ibatis的SqlExecutor，重写executeQuery方法， 利用Dialect增加分页
+
+4、使用spring mvc 需要在web.xml中配置DispatchServlet
+<servlet>
+		<servlet-name>ServletController</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/conf/gims-servlet-beans.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+注意:url-pattern配置为/，不带文件后缀，会造成其它静态文件(js，css等)不能访问。如配为*.do，则不影响静态文件的访问
+    <servlet-mapping>  
+        <servlet-name>ServletController</servlet-name>  
+        <url-pattern>*.do</url-pattern>  
+    </servlet-mapping>  
+
+controller乱码  http://blog.csdn.net/kalision/article/details/46441081
+
+SimpleUrlHandlerMapping 根据定义转发请求，map from URLs to request handler beans 
+
+<bean id="urlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">  
+        <property name="mappings">  
+            <props>  
+                <prop key="Test/*.do">beanController</prop>  
+            </props>  
+        </property>  
+    </bean>  
+比如访问的url是Test/test.do时，会交由beanController去处理，并且调用beanController里的test方法
+其中beanController必须继承MultiActionController,其中的methodNameResolver为InternalPathMethodNameResolver(如果没有配置methodNameResolver，缺省值就是这个)
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/WEB-INF/view/" p:suffix=".jsp" />
+其中methodNameResolver为3种方式，不同方式访问方式不同（http://blog.csdn.net/shuwei003/article/details/7712397）
+
+
+SpringMVC之HandlerMethodArgumentResolver和<mvc:argument-resolvers>  http://blog.csdn.net/u013160932/article/details/50609092
+
+SpringMVC中Controller的@ResponseBody注解分析  http://blog.csdn.net/huaishuming/article/details/31390161
+
+Spring JdbcTemplate用法 http://www.cnblogs.com/caoyc/p/5630622.html
+
+5、关于InternalResourceViewResolver 会在controller返回的ModelAndView的基础上加上配置的prefix和suffix
+http://blog.csdn.net/zxs9999/article/details/6904147
+
+6、通过使用Spring的servletEndpointSupport实现webservice  
+--axis1 spring整合           http://blog.csdn.net/zdwzzu2006/article/details/7443367
+--axis2 spring整合           http://blog.csdn.net/shimiso/article/details/9946743
+--axis2的services.xml详解    http://paggywong.iteye.com/blog/1350448   
+--axis2单独发布webservice    http://www.blogjava.net/nokiaguy/archive/2009/01/02/249556.html
+--webservice相关             http://blog.csdn.net/fjf133/article/details/5310024
+--Spring axis2整合           http://blog.csdn.net/xinhaoluan/article/details/3605234
+--jaxrpc.jar:（java APIs for XML-Based Remote Procedure Call，JAX-RPC）将XML 类型转换为 Java 类型，以确保 Web 服务客户机和基于 Java 的应用程序之间能够进行平稳的数据交换。是spring需要的 webservice需要jaxrpc.jar 和 commons-discovery-0.2.jar wsdl4j.jar
+axis 传输不同类型的对象  http://blog.csdn.net/tingxiao2177/article/details/2904905   例子 http://blog.csdn.net/liuxiaogangqq/article/details/17068075
+axis完全体 http://www.cnblogs.com/leslies2/archive/2012/09/07/leslies2Blog_java_axis.html
+axis wsdl2java生成客户端以及客户端调用http://blog.csdn.net/sunjin9418/article/details/6649152 
+     java2wsdl   http://714501466.iteye.com/blog/1694553
+
+axis 根据wsdl生成客户端服务端 http://blog.csdn.net/a19881029/article/details/24641551
+axis 增加请求头 https://www.cnblogs.com/dragon-aslan/p/4159392.html
+axis2 访问带用户名密码的接口 https://bnmnba.iteye.com/blog/2361980
+
+  根据wsdl2java和wsdl地址生成服务端： 首先点开wsdl2java.class，右键run configuration 左侧选择java application 设置main class是wsdl2java
+  然后设置arguments   -p生成的包名 + -o生成的路径  + wsdl的url地址 
+
+axis2 根据wsdl生成客户端 https://blog.csdn.net/i_choose_godeath/article/details/79150954 需要-u进行分包
+
+axis2调用sap  https://blog.csdn.net/qq_31763083/article/details/53812208
+
+ Unexpected wrapper element XX found. 问题  http://blog.csdn.net/mengtianshuibo/article/details/38703049
+
+关于消息队列 JMS ： http://blog.csdn.net/aking21alinjuju/article/details/6051421
+weblogic部署jms  http://blog.csdn.net/zdp072/article/details/26986675
+ActiveMQ的入门实例： http://www.cnblogs.com/xwdreamer/archive/2012/02/21/2360818.html
+axis reference :  http://axis.apache.org/axis/java/reference.html
+wsdd文件里的requestflow里的handler用于请求前的filter  responseflow里的handler用于请求后的filter
+axis1 详解 http://wenku.baidu.com/link?url=85aGXbRl8xeBK7ylzR7jrhKOQlcSmTINXHRqcRrae3kl5Tj6qGY3nO5n08g_n-q9ARrmLjiqIeA8AhNr5PuUd-iIg7zMSpb8PEFyhPKCf8C
+axis 根据wsdl逆向生成服务端代码
+axis客户端调用常见错误： Unmarshalling Error: unexpected element    http://t22011787.iteye.com/blog/1144662  
+xmlns和target namespace的区别  http://uule.iteye.com/blog/2141154
+关于qname  http://www.cnblogs.com/guoxu/articles/1702618.html
+WebService using Spring throwed org.xml.sax.SAXException: Bad envelope tag: html : http://www.cnblogs.com/loughofdragon/archive/2011/04/22/webservice.html
+axis客户端调用，服务器端接收参数为null :  http://blog.csdn.net/hyeidolon/article/details/41648771
+axis作为客户端调用cxf服务器端，如果服务器端有参数，比如参数名是xml, axis客户端需要
+			call.addParameter("xml",  org.apache.axis.encoding.XMLType.XSD_STRING,  javax.xml.rpc.ParameterMode.IN);
+			call.setReturnType(org.apache.axis.encoding.XMLType.XSD_STRING);
+http://blog.csdn.net/xiechunmei13/article/details/5656843
+
+webService 报aultString: org.xml.sax.SAXException: Bad envelope tag: definitions     http://blog.csdn.net/wangjinwei6912/article/details/8512598
+ WebService：Axis客户端调用需要身份验证的CXF服务 http://shenxueliang.iteye.com/blog/1734414
+
+
+--Xfire 实现webservice http://clq9761.iteye.com/blog/1261963
+
+7、springsecurity    http://haohaoxuexi.iteye.com/category/182468
+                     https://blog.csdn.net/liushangzaibeijing/article/details/81220610
+                     https://www.w3cschool.cn/springsecurity/
+   security里use-expressions 详解：  http://hougbin.iteye.com/blog/1526980
+
+8、spring配置datasource http://hackpro.iteye.com/blog/1037376
+
+9、spring配置事务管理 http://www.blogjava.net/robbie/archive/2009/04/05/264003.html
+  <bean id="transactionManagerII" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+        <property name="sessionFactory" ref="mainSessionFactoryII" />
+    </bean>
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+<bean>中id和name的区别 http://wxfstwxf.iteye.com/blog/1470485
+
+10、关于CXF的webservice http://haohaoxuexi.iteye.com/blog/1983508
+http://www.cnblogs.com/frankliiu-java/articles/1641949.html
+http://dyccsxg.iteye.com/blog/1905440
+在接口实现类里添加注解 @WebService(endpointInterface = "cn.mr.rw.jms.pbossjms.IPbossBussinessService")  所以namespace是按照包名倒叙
+targetNamespace="http://pbossjms.jms.rw.mr.cn/">
+在接口类里添加参数名称注解  public String handleBusssinessOrder(@WebParam(name="xml")String xmlRequest);
+传输文件：  http://exceptioneye.iteye.com/blog/1325187
+            http://blog.csdn.net/accountwcx/article/details/47165321
+            http://www.cnblogs.com/hoojo/archive/2010/12/20/1911385.html
+
+cxf调用webservice接口 http://www.cnblogs.com/lucky-girl/p/4218936.html
+      使用动态方法调用，需要服务器端的接口上配上@WebService(targetNamespace="http://soap.ws.iuap.yonyou.com") 否则会找不到operation http://www.cnblogs.com/yshyee/p/3633537.html
+
+cxf https http://liugang594.iteye.com/blog/1964775
+
+cxf调sap webservice  http://blog.sina.com.cn/s/blog_6556038f0101dkem.html
+
+cxf调服务需要用户名密码验证 https://www.cnblogs.com/zhaoyan001/p/6075522.html
+
+cxf设置auth  http://itindex.net/blog/2012/10/23/1350976040406.html
+
+The given SOAPAction does not match an operation    http://www.yyjjssnn.cn/articles/706.html
+
+11、spring配置文件中，parent属性用作对父类属性的重新配置
+<bean id="parentBean" class="com.eric.bean.ParentBean">
+  <property name="prop" value="father">
+</bean>
+<bean id="childBean" class="com.eric.bean.ChildBean" parent="parentBean">
+  <property name="prop" value="child">
+</bean>
+
+此时容器启动时，childBean的实例的prop是child，如果没有配置属性，prop是father
+
+12、由于设置bean定义中设置了abstract="true",因此它不能被容器实例化，只是在此起了模板的作用，供其他bean继承，所以在它的属性在类体中可以不定义，直接在bean的声明中以<proerty/>声明即可。子bean继承他后需要在提供对应的属性和set方法即可，在子bean中就可获取从父bean继承来的值
+
+13、spring定时任务quartz   http://kai2008.iteye.com/blog/435675  
+
+    MethodInvokingJobDetailFactoryBean		http://dongisland.iteye.com/blog/1452515
+    Quartz使用-入门使用			   http://blog.csdn.net/lotusyangjun/article/details/6450421/
+    Spring 3整合Quartz 2实现定时任务	        http://www.cnblogs.com/davidwang456/p/3858980.html
+    quartz.properties    http://www.cnblogs.com/phinecos/archive/2008/09/03/1282982.html
+    Spring+Quartz 集群		http://soulshard.iteye.com/blog/337886   http://www.cnblogs.com/davidwang456/p/4205237.html
+    spring+quartz持久化job      http://haiziwoainixx.iteye.com/blog/1838055                    
+                              targetObject(jobDetail)需要存储到数据库时，里面的属性可以设置transient关键字
+    spring+quartz 动态定时任务  http://ithead.iteye.com/blog/1460748
+    如果quartz的Job无法注入service，可以写一个joblistener，在那里面统一注入service  http://blog.csdn.net/fenglibing/article/details/6847158
+    quartz如果将job存储到数据库里，然后反序列化取出放到容器里时，spring是无法管理，所以需要用joblistener将bean从spring中取出，方便管理
+    cron表达式 http://www.cnblogs.com/superman66/p/4565723.html
+
+14、spring aop拦截的类必须实现接口，在service，定义这个类，类型是接口类型
+
+15、spring事务处理时自我调用解决方案，嵌套AOP  http://blog.csdn.net/wxwzy738/article/details/27566645
+    spring中对于事务控制是基于代理的，所以在本类里直接this.func()是没有aop切入的，需要从容器获取当前类的代理，然后调用方法才能有事务控制
+
+16、“Transaction rolled back because it has been marked as rollback-only”    http://narcissusoyf.iteye.com/blog/710261
+
+17、 SpringMVC 4 配置返回JSP,和Freemarker视图  http://blog.csdn.net/scherrer/article/details/38078281
+18、  DelegatingFilterProxy类的作用 http://blog.csdn.net/romantic_pk/article/details/53082201
+
+
+
+20、 SpringMVC 文件上传配置，多文件上传，使用的MultipartFile  http://blog.csdn.net/swingpyzf/article/details/20230865
+21、spring 多数据源  http://blog.csdn.net/wangpeng047/article/details/8866239/
+           注解多数据源  http://www.cnblogs.com/liujiduo/p/5004691.html
+
+23、spring @Aspect注解使用  http://blog.csdn.net/two_people/article/details/52181599
+           aop对注解进行切面    https://www.cnblogs.com/ssslinppp/p/5845659.html
+
+
+Hibernate学习 docs:  http://docs.jboss.org/hibernate/orm/
+***关于hibernate和spring整合，最重要的就是sessionFactory    http://blog.csdn.net/csh624366188/article/details/7665489
+1、配置以及简单应用：http://www.cnblogs.com/eflylab/archive/2007/01/09/615338.html
+2、关于hibernate的三种状态  http://www.cnblogs.com/xiaoluo501395377/p/3380270.html
+3、hibernate.cfg.xml详解  http://www.cnblogs.com/jqyp/archive/2010/06/28/1766851.html
+4、spring整合hibernate http://blog.csdn.net/shipeng22022/article/details/20903387
+5、使用的baseDao要继承HibernateDaoSupport  http://blog.csdn.net/baple/article/details/23352059 (但是需要注入HibernateTemplate或者sessionFactory属性）
+6、关于HibernateCallback的使用（可以增加hibernatetemplate的灵活性，使用session增加分页）   http://www.cnblogs.com/excellent-fish/p/3567094.html
+7、hibernatetemplate详解 http://blog.csdn.net/cherishme1988/article/details/8031726
+8、Hibernate关系映射 http://blog.csdn.net/huangaigang6688/article/details/7761310
+9、@Temporal的使用 http://blog.csdn.net/notonlyforshe/article/details/7343971
+10、hibernate sqlquery http://feicer.iteye.com/blog/549814
+11、session.flush()  http://blog.csdn.net/leidengyan/article/details/7514484
+12、sqlquery.addScalar("info", StringType.INSTANCE), 
+    sqlquery.setResultTransformer(Transformers.aliasToBean(Bean.class));
+    如果要这样设置，必须Bean类里有info这个属性
+    使用Transformers.aliasToBean，需要在sql里把所有需要的属性取出来，注意大小写
+    如果直接select t.* from table会有问题，因为t.*取出来的属性是大写，比如ID，但是类里面的属性是小写，所以会报错
+13、service使用save，数据库没有数据的原因：hibernate 必须显示的声明提交事务
+http://blog.csdn.net/zb0567/article/details/7182394 或者在service的方法上加注解
+http://blog.csdn.net/lianqi15571/article/details/10354389
+@Transactional的使用 http://my.oschina.net/guanzhenxing/blog/214228
+
+14、如果for循环里有增删改的事务，必须将for循环里的方法作为一个事务，而不是将整个for循环作为一个事务，这样会拉长事务时间
+
+
+14、hql 增加查询条件时，如果用到外键对象，如class对象里的student对象的Id,需要使用class.student.id作为查询条件，不能直接使用class.studentId
+15、实体类要放在对应扫描的package里，packagesToScan http://blog.sina.com.cn/s/blog_7d5f9c380101453h.html
+16 hibernate注解：  http://www.cnblogs.com/younggun/archive/2013/05/19/3086659.html
+17、proxy-target-class  http://blog.csdn.net/oathevil/article/details/7244694
+18、缓存  http://www.cnblogs.com/xiaoluo501395377/p/3377604.html
+19、@MappedSuperclass 用法 http://ynp.iteye.com/blog/781097
+20、@Inheritance http://zhuchengzzcc.iteye.com/blog/1679496
+21、实体类属性boolean 数据库 0或者1 http://www.cnblogs.com/taoweiji/archive/2013/09/11/3314694.html
+22、如果用createSQLquery，需要返回实体类时，需要用query.addEntity(实体类.class)  http://blog.csdn.net/vacblog/article/details/7769976
+23、addEntity和setResultTransfomer的区别http://blog.csdn.net/u011666411/article/details/51579488
+
+Maven项目 中央仓库 http://mvnrepository.com/
+maven学习  http://blog.csdn.net/cwh056056/article/details/49507693
+1、建立一个maven项目 http://www.cnblogs.com/xdp-gacl/p/4233289.html    http://www.cnblogs.com/fnng/archive/2011/12/02/2272610.html
+2、pom.xml详解  http://blog.csdn.net/adeyi/article/details/17259479
+3、maven与ant的比较  http://www.cnblogs.com/itech/archive/2011/11/01/2231837.html
+4、修改本地仓库 http://blog.csdn.net/yaerfeng/article/details/7880586
+5、mvn部署到服务器上时，需要mvn install
+6、mvn部署到服务器上，报找不到依赖的类时，http://blog.csdn.net/zjw10wei321/article/details/39319929
+7、mvn管理spring  http://blog.csdn.net/renfufei/article/details/35794985
+8、maven项目模块化  http://blog.csdn.net/w2865673691/article/details/47616075
+9、maven管理多模块化  http://xiemingmei.iteye.com/blog/1070529
+10、maven自动编译  确保 project->build automatically已经被选上
+    http://blog.csdn.net/awj3584/article/details/41116103
+11、要在maven的seting.xml里配置mirror镜像，这样才能先从本地仓库查找jar包
+12、maven pom.xml里的profile http://elim.iteye.com/blog/1900568
+13、手动将jar包添加到本地仓库 http://blog.csdn.net/a491857321/article/details/51085167
+14、中央仓库获取jar包 太慢   https://www.cnblogs.com/flying607/p/6223148.html
+15、maven项目pom.xml引入Oracle驱动 http://blog.csdn.net/youren_zt/article/details/60132324
+
+
+Lucene：http://www.cnblogs.com/xing901022/p/3933675.html
+
+
+ExtJS
+   http://www.cnblogs.com/chenyuming507950417/archive/2013/05/19/3087490.html
+
+关于ext的总结
+EXT的api : http://docs.sencha.com/extjs/
+中文api: http://extjs.org.cn/node/680
+1、获取组件Ext.getCmp("upPosName") upPosName是组件id
+2、给textfield的组件赋值，Ext.getCmp("upPosName").setValue(value);
+3、隐藏整个form里的组件和label
+Ext.getCmp('upPosName').getEl().up('.x-form-item').setDisplayed(false); 此时Ext.getCmp('upPosName').getEl().up('.x-form-item').isDisplayed() == false
+记住此时Ext.getCmp('upPosName').hidden 并不一定是true，要看component的hidden属性
+显示就是将值设为true
+4、隐藏textfield组件值，Ext.getCmp("upPosName").hide()或
+Ext.getCmp("upPosName").setVisible(false)
+显示textfield组件值，Ext.getCmp("upPosName").show()或
+Ext.getCmp("upPosName").setVisible(true)
+5、显示textfield组件的Label,Ext.getCmp("upPosName").label.show()
+隐藏可以在一开始New组件的时候设置属性hideLable:true
+也可以hidden:true隐藏textfield组件值
+6、想要获取组件，必须要给组件的xtype属性赋值，
+7、comboBox的属性listeners是监听，可以设置select选取触发事件
+也可以设置change，转换时候的触发事件
+8、Ext.data.store的reload方法有一个params属性，可以设置后台服务器的参数
+9、Ext.data.store的listeners有一个beforeload属性，可以设置proxy里的参数
+通过this.baseParams['后台参数名'] = 赋值
+10、extjs layout布局  http://www.cnblogs.com/mingforyou/p/4119200.html
+11、comboBox的id和hiddenName值一样时，下拉框显示会出现问题, 组件的hiddenname的值是传入后台的params的参数名
+12、timeField下拉后不显示值，是需要设置format
+13、extjs要再firefox和chrome中显示正常 ext-all.js和ext-all-debug.js只能引入一个
+14、Ext.PagingToolBar的cursor指的是当前页的某条记录，可用于分页
+15、extjs中显示中文，需要引入<script type="text/javascript" src="resources/ext/ext-lang-zh_CN.js"></script> 并且jsp中的pageEncoding需要是utf-8
+16、在fieldset中使用layout是column的话，fieldlabel会不显示，需要在fieldset里的item上嵌套一个layout为form
+17、在extjs中可以通过Ext.Panel.load({url: url, scripts:true}加载一个JSP页面，其中的url为jsp的地址
+18、formpanel的提交，可以设置一个url, url设置提交的action, 给form中的button设置handler为form.getForm().submit()，即提交后台处理，但是后台返回的数据必须符合json格式
+	{
+    		"success":true, // note this is Boolean, not string
+    		"msg":"Consignment updated"
+	}
+    前台才会处理，如果前台的textfield中不允许为空即allowblank为false，则为空时后台不处理
+	http://blog.csdn.net/zq9017197/article/details/6237362
+19、extjs中viewport和tabPanel使用  http://www.studyofnet.com/news/148.html
+20、对于textfield监听回车事件 ：http://blog.csdn.net/gangwazi0525/article/details/6770701
+21、前台解析json字符串 Ext.util.JSON.decode(response.responseText);
+21、css参考手册 ： http://www.w3school.com.cn/cssref/index.asp
+22、CSS按钮大全  http://www.iteye.com/news/24803
+22、getValue()获得当前的valueField值，getRawValue()获取的是displayField值
+23、js中可以正则表达式.test(String)来判断
+    http://colbybobo.iteye.com/blog/1769993
+24、display=none 和visibility=hidden是有区别的，display表示被移除，visibility表示还在，但是隐藏
+25、Ext.data.Store.get(name)，get the value from the name field，如果name是displayField就获取前台展示的值，如果name是valueField，就获取展示的value值
+26、不同的gridpanel里的columnmodel要使用不同的selectionModel，即使都是一种类型
+27、Ext.Panel config里的tools属性，可以在title右边增加按钮，然后根据id显示不同按钮图形，根据qtip显示提示文字
+28、Ext Panel总结 http://blog.csdn.net/zhang6622056/article/details/7067129
+29、listners里的 specialkey 是监听键盘按键
+30、点击按钮弹出一个新的窗口
+    handler: function(event, toolEl, panel){
+                    	new Ext.Window({
+                            title: "点位图",
+                            items: {
+                                 html: "<iframe scr=''/>"
+                            }
+                       }).show(); 
+                    }
+31、extjs显示图片  http://blog.csdn.net/zljjava/article/details/23268661
+32、window.location可以获取当前浏览器的url，从而获得ip
+33、EXT的组件，最好在方法里new 出来或者return出来，不要定义为全局变量
+33、单选和多选按钮放一行，用RadioGroup或者CheckBoxGroup  http://www.cnblogs.com/libingql/archive/2012/04/22/2464522.html
+34、form在提交时，是根据每个组件的name属性值去提交组件属性的，不是根据id
+35、$.ajax()中的参数如果dataType是Json,那么后台返回的数据必须是对象转换成的json字符串，直接拼接的json格式string是无法返回的
+36、block、inline和inline-block的区别  http://www.cnblogs.com/KeithWang/p/3139517.html
+
+Struts2
+1、关于modelDriven :  http://blog.csdn.net/li_tengfei/article/details/6098145
+   如果使用modelDriven，那么valuestack里有一个叫model的对象，只有使用domainModel，值栈里才是action中定义的那个model的名字
+2、注解使用  http://www.cnblogs.com/lbangel/p/3523741.html
+3、struts2返回json http://yshjava.iteye.com/blog/1333104
+4、修改struts2 action后缀 http://skyuck.iteye.com/blog/545988
+5、struts2引入多个配置文件 在struts.xml中配置 <include file="config/struts-*.xml"></include
+
+Log4J
+http://blog.csdn.net/azheng270/article/details/2173430/
+
+Junit使用
+http://blog.csdn.net/wangpeng047/article/details/9627527
+
+JS
+1、关于JS跨域 ：http://www.cnblogs.com/rainman/archive/2011/02/20/1959325.html#m0
+   含有src属性的标签是不受跨域限制的
+   关于jsonp: http://www.cnblogs.com/SanMaoSpace/p/3144851.html
+   jsonp服务器端返回数据格式：  http://www.cnblogs.com/yeminglong/archive/2013/06/24/3152976.html
+   在firefox浏览器的控制台会报"SyntaxError: missing ; before statement"错误       http://www.jb51.net/article/58156.htm
+   $.ajax()中的jsonpCallback参数是指返回js后，回调函数的名字 jsonp参数是服务器必须返回的回调方法名称
+2、点击按钮后需要在当前页面中打开新页面 onClick="javascript:window.open('新页面地址')" 可以实现， location.href = ""只是当前页面跳转
+3、鼠标悬停，可以在jsp或者html中加入title属性，比如<tr title="提示文字"></tr>
+4、<a>标签中的target属性可以控制窗口是在当前页面打开(target="_self")，还是弹出新窗口（target="_blank")
+5、encodeURI和encodeURIComponent用于编码，防止恶意注入以及对   String   对象编码以便它们能在所有计算机上可读
+6、eval() http://www.cnblogs.com/fuyun2000/archive/2012/11/10/2764433.html
+7、eval()解析json字符串时，字符串不能有换行
+8、未结束的字符串常量  http://blog.csdn.net/han_dongwei/article/details/8810324
+9、<img> 标签每出现一次，一个 Image 对象就会被创建，所以可以在Js里new Image()创建一个图片对象，然后设置长宽和src
+10、JS内置对象  http://www.w3school.com.cn/jsref/dom_obj_anchor.asp
+11、ligerui一个dialog弹div  http://www.cnblogs.com/vazumi/archive/2012/05/15/2501412.html
+12、ligerui    http://www.ligerui.com/ 
+13、ligerui修改form里field的属性时，是放在单个field的editor属性里
+    例： {
+				display : '箱体类型',
+				name : 'boxType',
+				type : 'combobox',
+				newline : true,
+				group : '模糊资源分配',
+				readonly : true,
+				validate : {
+					required : true
+				},
+				editor:{
+					selectBoxHeight : 45,
+					data: [{text : '多媒体箱', id : '1'},
+					       {text : '分纤箱', id : '2'}]
+	        	}
+14、<a href></a> 下划线的css style = 'color:#000;text-decoration:underline'
+去除下划线style = 'color:#000;text-decoration:none'
+http://zhidao.baidu.com/link?url=8Uqik9-cNSGrJzudFW7M8gXzRqK8CPs1BQUur4EOfRlOWS9Y_LaL9ybbz66Dz4xAKL7nwbs_pLb9TttYugHKr_
+15、ligerui grid里的render，如果return的是个数字 ，比如 return 0或者 return 1，必须将数字转换成字符， result = '' + 0  return result;
+16、<a href>标签使用页面里的js方法< a href = 'javascript: function'>点击</a>
+17、JS中的undefined、null、''、0和false   http://www.cnblogs.com/zxjyuan/archive/2009/02/06/1385503.html
+18、js中的replace方法只能替换一次，比如'abca'.replace('a', 'c') 会变成cbca，但是Js中没有replaceAll方法，所以需要使用正则表达式/g，表示全局搜索
+    ‘abca'.replace(/a/g, 'c')会变成cbcc
+19、js中的new Date(str),str的格式必须是'yyyy/MM/dd'， new Date（)的日期可以加减， 得到的值是相差的毫秒，比如一天就是3600*24*1000毫秒
+20、js闭包 http://www.cnblogs.com/xing901022/p/4282503.html
+21、jquery的ajax的参数是个数组，也可以认为是个对象
+    function getParams(data){
+	var params = [];
+	for ( var name in data) {
+		params.push({
+			name : name,
+			value : data[name]
+		});
+	}
+	return params;
+    } data是一个对象
+22、setTimeout(function, 1000)会等function执行完再等待1000ms，但是setinterval不会等function执行完
+23、js中 获取数组某个元素的Index  var index = array.indexOf(text) 如果index不是-1表示该数组包含该元素，然后在数组中删除该元素array.splice(index, 1);
+24、jquery的$.post是异步请求，需要同步时请使用$.ajax
+25、jquery for循环绑定事件容易出现最后一个元素覆盖前面的问题， 使用$.each(par, function)就可以避免http://bbs.csdn.net/topics/380027208
+26、ligerui grid中的getSelected()返回的对象和getData()返回的不是同一个对象，getSelected和grid.rows中的对象一致
+27、for循环 闭包  http://www.cnblogs.com/syf/archive/2012/10/04/2711828.html
+28、js for循环中嵌套for循环，不能定义相同变量比如
+	for(var i=0; i<2; i++){
+		for(var i=0; i<2; i++){
+			这就是错误的！！
+		}
+	}
+29、jquery trigger触发事件 http://blog.csdn.net/yenange/article/details/7355572
+30、可以用ajaxSubmit来提交form表单里的文件，但是需要引入jquery.form.js
+     http://www.cnblogs.com/Leo_wl/p/4393190.html
+     如果返回数据里有中文，ie会有乱码，解决方法 http://blog.csdn.net/hongweigg/article/details/6756278
+31、js下载正常是window.open(url, _'blank')但是当参数过多，Url会长，可以使用post下载 http://blog.csdn.net/w1014074794/article/details/50189447，ie情况下无法导出，需要把iframe去掉
+32、如果点击事件是在jsp中写好，比如<input type='button' onclick='点击'>这样点击事件只会触发一次，如果在js中绑定事件，$('button').click(function(){})这样会触发两次，因为事件是累加的
+    所以需要先解绑$('button').unbind('click').click(function(){})，这样才只会触发一次
+    https://segmentfault.com/q/1010000000458432
+
+33、toFixed()方法后精度失真 http://www.3fwork.com/b401/005796MYM000606/
+34、jquery 隐藏显示二级菜单  http://blog.csdn.net/supercoooooder/article/details/50755427
+35、新打开一个页面使用window.open，然后修改页面的html内容window.open().document.write(data);
+36、ajaxFileUpload  http://www.cnblogs.com/kissdodog/archive/2012/12/15/2819025.html
+37、 使用js实现点击按钮下载文件  http://www.cnblogs.com/jasmine-95/archive/2016/11/11/6054652.html
+
+     ajax是不能用于后台文件下载的，所以文件下载只能用隐藏form来实现！！！！！
+
+
+38、根据label文本查找label元素 http://blog.csdn.net/moliilom/article/details/50224975
+39、jquery has和contains区别 http://www.cnblogs.com/summer-work/p/6209373.html
+40、freemarker教程 http://blog.csdn.net/chenghui0317/article/details/7832474
+41、同一个div里的两个div如果要在同一行，需要设置div1的style="float:left;width:200px" div2的style="float:right;width:200px"才会在同一行
+42、js中format使用  http://www.cnblogs.com/loogn/archive/2011/06/20/2085165.html
+43、js中的内置对象arguments http://www.w3school.com.cn/js/pro_js_functions_arguments_object.asp 可用于重载，其实对应实参
+44、js面对对象编程 http://www.ruanyifeng.com/blog/2010/05/object-oriented_javascript_encapsulation.html
+45、const、var、let的区别 http://www.cnblogs.com/ksl666/p/5944718.html
+46、关于__proto__（注意是两个_）的介绍 http://blog.csdn.net/shi0090/article/details/45008595
+47、prototype和__proto__的区别  http://www.cnblogs.com/yangjinjin/archive/2013/02/01/2889103.html
+48、js中关于select 不可编辑  http://blog.csdn.net/sisibf/article/details/39231015
+49、js判断是否是IE浏览器  https://www.cnblogs.com/liuyanxia/p/5855760.html
+50、js中的 || 与 && 运算符详解 https://www.jb51.net/article/140789.htm
+	
+
+关于JAVA
+1、Gson 使用 http://www.cnblogs.com/haippy/archive/2012/05/20/2509329.html
+2、内存溢出 http://blog.chinaunix.net/uid-16728139-id-3123809.html
+3、关于java 通配符 http://shmilyaw-hotmail-com.iteye.com/blog/1405904  使用通配符的collection只能读取数据，不能放入数据
+   有关? extends T 和 ? super T的区别 http://www.cnblogs.com/friends-wf/p/3582841.html
+4、java 常用jar包 http://wenku.baidu.com/link?url=CjtPRa_ISOg1OOLHl7-5QKKrIDDIuOnBnWLkrmvK4z4RwrjTU2k0MZSX08fiYHrrGOjeough3H03SiRORCNWgZmfTMmGwjnHU_TVk0N9TXC
+5、关于ThreadLocal http://www.iteye.com/topic/103804
+6、java实现定时任务的三种方式：http://blog.csdn.net/haorengoodman/article/details/23281343
+7、关于http xml传输数据  http://blog.csdn.net/5iasp/article/details/6087060
+8、使用eclisep template，代码模板，alt+shif+z（选择代码模板) 	http://developer.51cto.com/art/201103/249292.htm
+9、hashmap读的时候不一定按照放的顺序读，treemap是按照key的升序去读取数据，linkedhashmap是按照放入的顺序读取
+	http://blog.csdn.net/wangtao6791842/article/details/12904467
+10、dom4j   http://blog.csdn.net/redarmy_chen/article/details/12969219
+11、关于final关键字 http://www.cnblogs.com/dolphin0520/p/3736238.html
+12、system.in可以在控制台输入
+13、http + xml做接口    http://blog.csdn.net/gumanren/article/details/4663010   http://blog.csdn.net/5iasp/article/details/6087060
+    http post请求和响应 http://dododo1234321-163-com.iteye.com/blog/1596013
+14、httpclient :  http://www.cnblogs.com/loveyakamoz/archive/2011/07/21/2112804.html
+    httpclient调用接口 http://blog.csdn.net/5iasp/article/details/8638800
+			http://zjnbshifox.iteye.com/blog/1358754
+    httpclient 中文乱码 http://blog.csdn.net/apei830/article/details/5526236
+    httpclient 使用get和post传参   http://www.cnblogs.com/ding0910/p/4151697.html
+（httpclient 3.1)
+    httpclient 使用Post传参 两种版本 http://risheng.iteye.com/blog/1876573
+		http://wosyingjun.iteye.com/blog/2242402
+    httpclient 设置超时  http://blog.csdn.net/hudashi/article/details/8652482
+			 http://blog.csdn.net/iris0123456/article/details/6535819
+    httpclient 参数配置  http://www.cnblogs.com/niubijian/archive/2012/11/19/2776958.html
+    httpclient 下载图片  http://weifly.iteye.com/blog/145457
+    httpclient 客户端请求设置编码，需要这样设置l
+                                   String contentType = "text/html; charset=" + encoding;
+                                   RequestEntity entity = new StringRequestEntity(xmlRequest, contentType, encoding);
+    httpclient 使用json传输参数   http://www.cnblogs.com/Vdiao/p/5339487.html
+
+15、jndi配置： http://blog.csdn.net/lgm277531070/article/details/6711177
+               http://www.cnblogs.com/chinafine/archive/2010/06/16/1759246.html
+   spring使用jndi配置数据源  http://kingxss.iteye.com/blog/1481872
+16、加密方法：  http://www.iteye.com/topic/1122076/  md5后变成代码，需要将byte转换为16进制 http://blog.csdn.net/wxwzy738/article/details/17009583
+17、ehcache   http://raychase.iteye.com/blog/1545906
+18、利用commons-mail.jar发送邮件  http://liangq.iteye.com/blog/1222307 需要添加mail.jar 下载地址http://www.oracle.com/technetwork/java/index-138643.html
+19、eclipse xml自动提示 http://jingyan.baidu.com/article/597a064394b77d312b5243ae.html
+20、jstl  http://elf8848.iteye.com/blog/245559
+21、jsp中如果要使用el表达式，如果是servlet2.5之前的jar包，需要在jsp中加入isELIgnored="false"
+22、eclipse添加javadoc http://blog.csdn.net/moruihong/article/details/7687365
+23、关于error和exception http://blog.csdn.net/zdwzzu2006/article/details/6568600
+24、关于transient关键字  http://blog.csdn.net/zxl315/article/details/5359151
+25、javax.jws.WebService 基于jdk的webservice发布  http://www.blogjava.net/zjhiphop/archive/2009/04/29/webservice.html
+    @webservice 注解 http://yufenfei.iteye.com/blog/1685249
+                     http://418684644-qq-com.iteye.com/blog/1208149
+26、关于object.clone的用法，clone是相当于new出来一个一模一样的对象。如果A a = new A(); A a1 = a;这只有一个对象，如果改变a1，a也会变，
+    但是如果A a1 = a.clone，改变a1的话a是不会变的，如果要一个对象能用clone方法，因为是protected，所以两种方法，一对象实现clonable接口，二重写Object的clone方法
+    类似public A clone()
+	{
+            return super.clone();
+        }
+27、java io流的关闭问题   http://www.cnblogs.com/qqzy168/p/3670915.html
+28、poi读取生成excel   http://blog.csdn.net/huazhangena/article/details/7587731
+    http://blog.csdn.net/npp616/article/details/8546737
+29、jxl读取生成excel http://www.cnblogs.com/jyh317/p/4065906.html
+30、poi和jxl实例比较  http://javapub.iteye.com/blog/718056
+31、httpservletresponse 乱码问题  http://blog.csdn.net/simon_1/article/details/9092747
+32、执行try catch时， 如果没有catch到对应异常，那么catch里的代码块是不会执行的！！！
+33、匿名内部类使用参数必须定义为final  http://www.cnblogs.com/albert1017/p/3915356.html
+34、jaxb根据xml生成javabean  http://blog.csdn.net/wugouzi/article/details/25044655
+35、根据xsd生成javabean   http://wiki.bsdn.org/pages/viewpage.action?pageId=21332374
+36、IntHolder StringHolder的用法（javax.xml.rpc.holders）  http://blog.csdn.net/tangyangcn/article/details/10256403
+    可用于接口返回多个参数
+37、获取服务器端的文件  http://www.cnblogs.com/csophys/archive/2012/11/25/2787386.html
+38、通过反射运行时修改静态常量值：  http://blog.csdn.net/barryhappy/article/details/24442953/
+39、使用ftpclient进行文件上传和下载  http://blog.csdn.net/kardelpeng/article/details/6588284
+    如果ftp服务器没有设置用户名和密码， 用户名填anonymous， 密码任意字符串都可以
+win7可以自己建立本地ftp服务器   http://jingyan.baidu.com/article/9faa7231773bfb473c28cb39.html
+40、Java通过FileWriter的write方法写int型数值时乱码问题解决方法  	http://blog.sina.com.cn/s/blog_9c5d29f70101gjcn.html（是将Int，写 成了对应的asc码)
+41、设置生成文件的编码是在outputsteamwriter出设置编码
+new OutputStreamWriter(new FileOutputStream(file),"gbk")
+42、点击按钮下载excel http://blog.csdn.net/evangel_z/article/details/7332535
+43、显示百分比  http://blog.csdn.net/solidwang/article/details/7067742 DecimalFormat
+44、如果以|作为分隔符，string.split必须("\\|") http://www.cnblogs.com/ywl925/p/3849466.html
+45、
+46、RMI使用 http://www.cnblogs.com/leslies2/archive/2011/05/20/2051844.html
+47、new ModelAndView(view, param), param是一个map，jsp中要获取里面的值，需要用(String)request.getAttribute("pageStatus"); 然后在Js中 var a = '<%=value%>'获取
+48、servletcontextlistener的作用  http://blog.csdn.net/taijianyu/article/details/2898468
+49、动态代理 JDK和Cglib的区别  http://www.cnblogs.com/jqyp/archive/2010/08/20/1805041.html
+50、java后台中的url中如果含有中文，需要用URLEncoder.encode(String, "utf-8")进行转码，否则会报Invalid uri
+    http://blog.csdn.net/rugaxm/article/details/7804425
+51、常用wsdl地址 ：  http://www.cnblogs.com/younggun/archive/2013/05/22/3092585.html
+52、java 设计原则 ： http://blog.csdn.net/cq361106306/article/details/38708967
+53、xml默认编码为UTF-8 http://www.cnblogs.com/shishm/archive/2011/12/28/2305397.html
+54、 invalid byte 1 of 1-byte UTF-8 sequence  http://blog.csdn.net/democreen/article/details/6210779
+55、可以在controller加一个静态全局变量，用来计数，可以统计同时调某个url的次数，可以限制同时访问的次数
+56、可以限制上传文件的大小  关于fileitem类 http://blog.csdn.net/smallhorn/article/details/7864658
+57、java list去重，获取重复 http://iteye.blog.163.com/blog/static/18630809620131493238158/
+58、javacore文件分析 http://www.ibm.com/developerworks/cn/websphere/library/techarticles/1406_tuzy_javacore/1406_tuzy_javacore.html
+59、java多线程  http://www.cnblogs.com/0616--ataozhijia/p/4126941.html
+60、enum用法 http://www.cnblogs.com/happyPawpaw/archive/2013/04/09/3009553.html
+    枚举就是定义个类，然后里面有固定的对象，通过Enum.values()方法可以获取所有的对象
+61、java图片与字符串的相互转化   http://hxdawxyhxdawxy.iteye.com/blog/1750488
+62、关于换行符 linux系统\n表示 回车换行  windows是\r\n 回车换行  http://www.jb51.net/article/70116.htm
+63、map缓存
+    public void reloadSystemParamCatch() {
+        List<SystemParam> list = this.systemParamDao.getAllParam();
+        if(paramsMap == null) {
+            paramsMap = new HashMap<String, String>();
+        }else {
+            paramsMap.clear();
+        }
+        for(SystemParam temp : list) {
+            if(!StringUtils.isBlank(temp.getAttribute())) {
+                paramsMap.put(temp.getAttribute(), temp.getValue());
+            }
+        }
+    }
+    paramsMap是一个静态属性
+    可以在controller里手动触发达到刷新缓存的作用
+64、printwriter的flush 方法  http://yangjayup.iteye.com/blog/1933331
+65、常用数据库驱动 http://blog.csdn.net/nan_gua_xu/article/details/45250865
+66、weblogic使用总结 http://www.cnblogs.com/xdp-gacl/p/4201094.html
+67、java注解  http://www.cnblogs.com/coolgun/p/3802535.html
+68、Apache 的BeanUtils 拷贝日期对象转换问题 http://blog.csdn.net/sunshine_bean/article/details/47725171
+69、DecimalFormat用法 http://www.cnblogs.com/lsun/archive/2011/06/22/2087116.html
+70、JPA实体属性转换器 @Convert https://my.oschina.net/letao/blog/524487
+71、判断char是否为中文  http://www.cnblogs.com/zztt/p/3427452.html
+72、http header详解 https://kb.cnblogs.com/page/92320/
+71、自定义jsp的tag http://www.runoob.com/jsp/jsp-custom-tags.html
+72、tagsupport http://blog.csdn.net/zljjava/article/details/17420769
+73、tagsupport和simpletagsupport http://liqita.iteye.com/blog/1678363
+74、生成二维码名片  http://blog.csdn.net/lidew521/article/details/24441825
+75、MD5 32位大小写  http://blog.csdn.net/cat_book_milk/article/details/52954618
+76、java 注解 http://www.cnblogs.com/Johness/archive/2013/04/17/3026689.html
+77、java 用java解析字符串，如字符串"(1+2/5)*3"当成是数值表达式，进行计算出结果来  http://www.cnblogs.com/zhaoyan001/p/6221447.html
+78、浏览器导出文件时，文件名是乱码的解决方案  http://blog.csdn.net/crazycoder2010/article/details/7261992
+79、java 生成 pdf  http://www.cnblogs.com/h--d/p/6150320.html
+    根据模板生成pdf http://blog.csdn.net/u012377333/article/details/51264122
+80、JDBC多数据源 c3p0使用  http://www.cnblogs.com/charliePU/p/5579195.html
+81、jdbc默认是自动commit 可以调用connection对象的setAutoCommit(false)是指是否自动提交
+82、java web项目 获取各种路径  http://www.cnblogs.com/xrab/p/5046005.html
+83、java 反射动态获取方法 http://blog.csdn.net/wangshfa/article/details/8179370
+84、java 生成word文档  http://blog.csdn.net/zhangzhangjava/article/details/52937159
+                       http://blog.csdn.net/zhouseawater/article/details/54289495
+85、freemarker模板路径  http://blog.csdn.net/andyliulin/article/details/52371972
+86、java调用sap rfc接口 http://blog.csdn.net/jay_1989/article/details/51821069
+	                https://www.cnblogs.com/rinack/p/6866191.html
+    jcotable参数  https://www.cnblogs.com/zfswff/p/5671148.html
+87、 java 域登录认证  http://blog.csdn.net/Pnoter/article/details/52115898
+88、 spring ref local和 ref bean的区别 http://www.blogjava.net/algz/articles/163072.html
+89、 java客户端调用Pi接口  https://jingyan.baidu.com/article/414eccf66ec5dd6b431f0ab2.html
+90、 SSL双向认证  http://so.csdn.net/so/search/s.do?q=%E5%8F%8C%E5%90%91%E8%AE%A4%E8%AF%81&t=blog
+91、JAVA调用HTTPS双向认证    http://blog.csdn.net/zhangyong125/article/details/49996481
+                             http://blog.csdn.net/zhongming_software/article/details/8592331
+92、密钥，公钥区别  http://blog.csdn.net/ghevinn/article/details/12648531
+93、response.getWriter如果需要换行， 要用<br/>
+94、kettle安装使用  https://jingyan.baidu.com/article/6b97984dcb1e9d1ca3b0bf4f.html
+                    http://www.kettle.net.cn/1310.html
+
+
+Kettle  http://blog.csdn.net/yvigmmwfn/article/category/2089811
+
+95、Maven + 各数据库连接driverClass、jdbcUrl、Maven依赖不完全记录 http://blog.csdn.net/liyintaoliuyun/article/details/53213010
+
+96、java获取https证书 http://www.cnblogs.com/enenen/p/6238504.html
+ 
+97、java 文件下载 http://www.cnblogs.com/lihaoyang/p/7348293.html
+
+98、cxf 调用带ip的https  https://blog.csdn.net/guoxilen/article/details/78543456
+    使用ip访问https的webservice  https://www.acgist.com/article/393.html
+   cxf 访问https https://blog.csdn.net/himly_zhang/article/details/81109080
+99、分布式锁  https://www.cnblogs.com/seesun2012/p/9214653.html
+              https://www.cnblogs.com/cxxjohnson/p/8998381.html
+100、simpledateformat使用   https://www.cnblogs.com/jyiqing/p/6858224.html
+101、https缺少证书链        https://blog.myssl.com/faq-miss-ca-certificate/
+                            https://www.cnblogs.com/hzpythoner/p/8244922.html
+
+102、Pattern和matcher       https://www.cnblogs.com/gdwkong/articles/7782331.html
+
+Drools 策略配置使用  http://blog.csdn.net/shuyaji/article/details/4761106
+Drools入门 http://blog.csdn.net/u010416101/article/details/53619704
+
+关于sql
+1、not exists (select 1 from table) :  http://blog.csdn.net/m13666368773/article/details/7007197
+2、oracle 树形查询  http://blog.csdn.net/itmyhome1990/article/details/16338637
+3、(+)在sql里表示外链接， 加在左边表示右链接， 加在右边表示左链接
+   例如 port.oflpid = flp.id(+) 显示port表的所有信息,  port.oflpid(+) = flp.id 显示flp表的所有信息
+4、sql中给某个string类型的值加上一个string用 ||， 例如update table set column = 'string' || column where id = 123 字符串链接
+5、删除存储过程 drop procedure 存储过程名字;
+6、create table 1 as select * from table 2;
+7、insert into table 1 (select t.* from table 2 t where t.id = **);
+8、使用pl-sql时，查询结果中文乱码，http://jingyan.baidu.com/article/a3aad71aa9bfefb1fa00964d.html
+9、sql层次化查询 START WITH ... CONNECT BY PRIOR  http://blog.csdn.net/leshami/article/details/5616877
+10、oracle hint使用 http://www.cnblogs.com/sopost/archive/2010/10/11/2190076.html
+11、sql查询截取字符串 substr('str'，num) num大于0，从前截取， num小于0，从后截取
+    http://www.cnblogs.com/nicholas_f/articles/1526063.html
+12、sql模糊查询   http://www.cnblogs.com/GT_Andy/archive/2009/12/25/1921914.html
+13、对于文本字段进行模糊查询不可以使用 like '%xxx%' 性能很差，使用instr(字段,'关键字')>0 
+http://blog.csdn.net/xb12369/article/details/21156809
+14、查看锁表进程SQL  http://www.cnblogs.com/gengyulong/archive/2011/04/07/2007586.html
+15、EXISTS与IN的使用效率的问题，通常情况下采用exists要比in效率高，因为IN不走索引，
+但要看实际情况具体使用：IN适合于外表大而内表小的情况；EXISTS适合于外表小而内表大的情况。
+16、oracle 从右到左的顺序处理FROM子句中的表名,FROM子句中写在最后的表(基础表 driving table)将被最先处理，在FROM子句中包含多个表的情况下,你必须选择记录条数最少的表作为基础表。如果有3个以上的表连接查询, 那就需要选择交叉表(intersection table)作为基础表, 交叉表是指那个被其他表所引用的表.   
+   ORACLE采用自下而上的顺序解析WHERE子句,根据这个原理,表之间的连接必须写在其他WHERE条件之前, 那些可以过滤掉最大数量记录的条件必须写在WHERE子句的末尾.
+17、oracle sql优化  http://www.cnblogs.com/eric_ibm/archive/2012/01/09/oracle_skill.html
+18、in 后面的数值最多只能1000个
+19、关于rownum http://www.cnblogs.com/chinhr/archive/2007/09/30/911685.html
+20、case when http://www.cnblogs.com/eshizhan/archive/2012/04/06/2435493.html
+21、decode 用法 http://www.cnblogs.com/juddhu/archive/2012/03/07/2383101.html
+22、行转列  http://blog.csdn.net/tswisdom/article/details/7255037
+23、oracle中表示小数的数据类型用number(p, s),其中p表示长度，s表示小数点位数，默认为0，表示四舍五入
+24、用group by 代替distinct去重，可以优化sql
+25、存储过程中是不能直接使用ddl语句，比如drop alter truncate等，如要使用需要使用execute immediate(ddl语句) http://blog.itpub.net/17203031/viewspace-708923/
+26、timestamp类型的字段 + 0可以转成date类型进行加减， date类型加减得到天数 * 24 可以得到小时
+    timestamp加减得到毫秒数
+27、格式代码出现两次  http://heisetoufa.iteye.com/blog/263560
+28、trunc(timestamp)，可以得到yyyy-mm-dd的date类型 然后加1/3就得到到当天的8点
+    trunc用法 http://appleses.iteye.com/blog/1531048
+29、存储过程里可以使用If else，具体格式
+    if **
+    then **;
+    elsif **
+    then **;      注意是elsif不是 else if
+    end if;
+30、动态sql绑定参数 http://blog.csdn.net/u012209894/article/details/46696001
+    绑定参数只能作为变量，不能做为sql中的表名，字段名  http://blog.csdn.net/it_taojingzhan/article/details/50013675
+31、select into和insert into select http://www.cnblogs.com/freshman0216/archive/2008/08/15/1268316.html
+32、oracle查询n到m条数据  http://www.cnblogs.com/lidabo/archive/2013/01/10/2854179.html
+33、ora 28000账号被锁   http://blog.csdn.net/bisal/article/details/18264817
+34、for和while循环  http://www.cnblogs.com/wangyt223/archive/2012/10/23/2735543.html
+35、取随机数  http://www.cnblogs.com/ulex/p/4415478.html
+36、获取日期年月日 select to_char(date,'yyyy') from dual yyyy可以变成mm月份或者dd日
+37、sql判断是否为数字 regexp_like(t.broadbandwidth,'^[1-9]\d*$')http://blog.csdn.net/z69183787/article/details/8556217
+38、两张表字段对应一一更新  http://blog.csdn.net/xuhuan_wh/article/details/8531018
+39、现在都是CBO，所以对于查询条件的顺序不会产生太大变化，会根据cost去自动优化查询、
+40、plsql里的执行计划，缩进最多的先执行，同缩进的从上往下执行
+41、select count(distinc()) from ** group by **可以两次去重
+42、plsql调试存储过程  http://jingyan.baidu.com/article/6d704a13f7921428da51ca46.html
+43、游标里异常处理，
+    oper cursor c_cursor;
+    loop
+      fetch c_cursor into cursor;
+      exit when c_cursor%not_found;
+     begin
+       sql主体
+     exception
+     when others
+     then;
+     when others
+     then;
+     end;
+    end loop;
+    close c_cursor;
+
+44、oracle里的定时任务 http://elim.iteye.com/blog/1983109
+45、oracle多表关联更新  http://blog.itpub.net/29378313/viewspace-1064069/
+
+
+关于ibatis
+1、resultmap中的column不是指数据库里的列，指的是取出数据后放入的domain对象的属性，而property是指后面class的属性
+2、ibatis中的sql语句不需要分号;否则会报ora-00911: 无效字符
+3、iBatis中RowHandler处理大数据量的导出  http://sdkd-tiger.iteye.com/blog/1469063
+
+
+IOUtils.write(FileUtils.readFileToByteArray(file), response.getOutputStream());
+
+
+
+Eclipse相关
+电脑重启打开工程报 org.eclipse.core.internal.dtree.ObjectNotFoundException
+把workspace下面的.metadata/.plugins/org.eclipse.core.resources/.snap 删了后就OK了
+
+svn工作副本锁住，先cleanup
+
+eclipse工程右键--->team 没有选项   http://blog.csdn.net/zhengqiqiqinqin/article/details/9820895
+eclipse总是validating js  http://blog.csdn.net/grpideas/article/details/40707461
+
+myeclipse优化启动速度  http://jingyan.baidu.com/article/455a9950f34cf5a1662778f0.html
+
+关于MyEclipse SVN显示资源历史记录乱码问题 http://blog.csdn.net/scholar_man/article/details/41806015
+
+eclipse打开没反应 https://blog.csdn.net/zwzsdy/article/details/79849647
+
+
+
+spring事务总结
+
+使用声明式事务管理
+@Transactional(propagation=Propagation.REQUIRED) 
+public void a(){
+        testa//事务方法
+	try{
+	   b(){
+               testb//事务方法
+               
+	   };    
+           b方法现在没有使用代理，也就是没有事务切面控制，那么如果b中抛出的错不是数据库错误并且在b事务方法前，那么a中事务提交，b中事务失败
+                                                              如果b中抛出的错不是数据库错误并且在b事务方法后，那么a中事务提交，b中事务成功
+                                                              如果b中抛出的错是数据库错误，那么a中事务失败，b中事务也失败
+           b方法现在使用代理，有事务切面控制，那么如果b中只要抛错，a和b的事务都失败，报错是Transaction rolled back because it has been marked as rollback-only
+                                                              
+	}catch(exception e){
+	   //
+	}
+}
+
+
+好文章汇总 http协议等 http://www.cnblogs.com/xdp-gacl/p/3751277.html
+
+
+Node.js
+
+1、nodejs 模块全局安装路径配置 http://www.cnblogs.com/rancho-blog/p/6567929.html
+2、nodejs 全局安装和本地安装区别 
+   安装警告 no such file or directory，没关系
+3、cmd和amd的区别  http://blog.csdn.net/u012246342/article/details/50215033
+4、commonJs的规范 http://javascript.ruanyifeng.com/nodejs/module.html#
+5、Node.js开发入门 http://www.cnblogs.com/zhongweiv/p/nodejs.html
+6、Node.js调用webservice http://www.cnblogs.com/wx1993/p/6090414.html
+7、express不是内部或者外部命令 http://www.cnblogs.com/zhangym118/p/5842094.html
+8、express使用ejs，页面中文乱码，是因为ejs文件没有使用utf-8保存，按照编码保存就不会出现乱码
+9、express中app.locals和res.locals作用 https://itbilu.com/nodejs/npm/Ny0k0TKP-.html
+10、sublime text支持代码提示 http://www.cnblogs.com/devcjq/articles/3498980.html
+
+AngularJs
+1、 service、factory、provider使用和区别  https://www.oschina.net/translate/angularjs-factory-vs-service-vs-provider
+2、 $q 的使用 http://www.cnblogs.com/xing901022/p/4928147.html
+
+python
+
+1、windows下 python apache cgi http://blog.csdn.net/sinat_30071459/article/details/50896458
+2、django开发  http://www.cnblogs.com/maybe2030/p/4600872.html
+   django book  http://djangobook.py3k.cn/2.0/
+3、wsgi http://blog.csdn.net/u011521019/article/details/45621467
+4、简单爬虫 http://www.cnblogs.com/fnng/p/3576154.html 
+5、scrapy http://python.jobbole.com/86405/   http://www.pythontab.com/html/2013/pythonhexinbiancheng_0814/541.html
+6、yield使用 
+7、正则表达式 http://www.cnblogs.com/chuxiuhong/p/5885073.html ()表示捕获，会获取到括号里的内容
+8、正则表达式贪婪模式 http://www.cnblogs.com/xudong-bupt/p/3586889.html
+9、python 文件操作 http://www.cnblogs.com/tkinter/p/5631213.html
+10、正则表达式中.不能表示换行符
+11、python 定时器 http://blog.csdn.net/chosen0ne/article/details/7842421
+
+
+windows 域以及AD http://blog.csdn.net/binyao02123202/article/details/8061771
+
+移动开发
+web app和原生app的区别  https://www.oschina.net/question/585173_2141646
+
+SVN服务器搭建和使用   http://www.cnblogs.com/xiaobaihome/archive/2012/03/20/2407610.html
+
+
+MongoDB  windows安装  https://www.cnblogs.com/hongwest/p/7298257.html
+
+
+ESB
+
+http://www.uml.org.cn/qiyezjjs/201801184.asp?artid=20322
+
+https://www.jdon.com/soa/esb.html
+
+JWT
+
+http://www.ruanyifeng.com/blog/2018/07/json_web_token-tutorial.html
+
+springboot
+
+介绍      https://www.cnblogs.com/ityouknow/p/5662753.html
+启动报错  https://www.cnblogs.com/QQ931697811/p/6707740.html
+eclipse中创建spring boot  http://blog.csdn.net/clementad/article/details/51334064
+安装springboot1的插件新建springboot2的项目 pom.xml会报错 unknown
+springboot 修改端口号 http://blog.csdn.net/argel_lj/article/details/49851625
+springboot整合cxf https://blog.csdn.net/qq_33460264/article/details/85062138
+整合cxf带用户验证   http://blog.csdn.net/fengrunche/article/details/53524173
+springboot启用https   http://blog.csdn.net/RO_wsy/article/details/51319963   http://blog.csdn.net/u012702547/article/details/53790722 
+springboot 跳转 https://blog.csdn.net/jintingbo/article/details/81633615
+springboot oracle驱动 https://blog.csdn.net/u013014784/article/details/62238461
+springboot jdbctemplate https://blog.csdn.net/u013871100/article/details/68925050
+配置数据源  https://www.cnblogs.com/tomlxq/p/5514658.html
+springboot 多数据源 https://blog.csdn.net/pengjunlee/article/details/80135271
+requestparam和requestbody   https://blog.csdn.net/xinluke/article/details/52710706
+@crossorgin 解决跨域       https://www.cnblogs.com/mmzs/p/9167743.html
+@RequestParam，@PathParam，@PathVariable https://blog.csdn.net/u011410529/article/details/66974974
+集成swagger           https://www.jianshu.com/p/dcaff30f91cc
+                      https://www.cnblogs.com/xiebq/p/9181517.html
+
+
+
+
+mybatis  
+
+学习                     https://www.cnblogs.com/pjfmeng/p/7688172.html
+springboot整合mybatis    https://www.cnblogs.com/wangshen31/p/8744157.html
+找不到xml文件            https://www.cnblogs.com/momoweiduan/p/9844069.html
+传参问题                 https://www.cnblogs.com/xiancheng/p/5543014.html
+
+Shiro
+
+     自定义标签 + shiro 实现权限细粒度控制 http://blog.csdn.net/yingxiake/article/details/51578438
+     shiro                                 https://www.w3cschool.cn/shiro/co4m1if2.html
+     springboot + shiro                    https://www.cnblogs.com/HowieYuan/p/9259638.html
+                                           https://www.cnblogs.com/zls1218/p/8780178.html
+     springboot + shiro + jwt              https://www.cnblogs.com/HowieYuan/p/9259650.html
+     shiro使用注解                         https://www.jianshu.com/p/1f77702e4947
+     filter匹配和顺序                      https://www.cnblogs.com/116970u/p/11169985.html
+
+
+
+docker
+
+https://hub.docker.com   账号: sueneric1987  密码: eric6558512
+
+https://www.cnblogs.com/ityouknow/category/1173004.html
+https://www.cnblogs.com/ECJTUACM-873284962/p/9789130.html
+
+安装报错               					 https://blog.csdn.net/eussi/article/details/88809791
+开启hyper-v            					 https://www.windows10.pro/how-to-see-if-the-computer-can-run-hyper-v-virtual-machines/
+docker安装             					 https://www.cnblogs.com/rouqinglangzi/p/10059402.html
+                       					 https://www.runoob.com/docker/windows-docker-install.html
+docker-toolbox        					 https://docs.docker.com/toolbox/toolbox_install_windows/
+toolbox启动报错                                          https://blog.csdn.net/qq_21856521/article/details/86524776
+Checking if machine default exists                       https://blog.csdn.net/huangshuangda/article/details/96480352
+boot2docker.iso版本不是最新                              https://blog.csdn.net/weixin_44009701/article/details/84875049
+dockertool-box 镜像加速                                  https://www.cnblogs.com/lori/p/8856656.html	
+镜像和容器的区别                                         https://www.cnblogs.com/baizhanshi/p/9655102.html
+本地导入镜像                                             https://www.cnblogs.com/linjiqin/p/8604756.html
+docker运行ubuntu                                         https://blog.csdn.net/u010164190/article/details/80065555
+常用命令                                                 http://dockone.io/article/2471
+                                                         根据镜像创建容器 docker run -t -i 镜像名称
+                                                         查看容器: docker ps -a
+                                                         进入容器: docker attach name(容器名称)
+                                                         退出容器: exit或者ctrl+P+Q
+                                                         删除容器: docker stop id然后 docker rm id
+                                                         删除镜像: docker rmi id
+启动停止容器                                             https://blog.csdn.net/Michel4Liu/article/details/80889977
+部署web项目并提交                                        https://www.jb51.net/article/146308.htm
+                                                         https://blog.csdn.net/qq_39615245/article/details/82712035
+docker ubuntu安装vim                                     https://blog.csdn.net/weixin_39800144/article/details/79231002
+删除镜像                                                 https://www.cnblogs.com/sddai/p/10427785.html
+
+
+nginx
+
+https://www.cnblogs.com/wcwnina/p/8728391.html
+
+启停命令 https://www.cnblogs.com/codingcloud/p/5095066.html
+安装后无法访问页面 https://www.cnblogs.com/achengmu/p/9093981.html
+centos7安装nginx 报./configure: error: C compiler cc is not found   https://blog.csdn.net/u011924665/article/details/53333279
+Nginx配置SSL报错 unknown directive "ssl" https://blog.csdn.net/weiyangdong/article/details/80008543
+负载均衡配置  https://www.cnblogs.com/wzjhoutai/p/6932007.html
+upstream和location参数  https://blog.csdn.net/caijunsen/article/details/83002219
+查看端口使用情况  https://www.cnblogs.com/hindy/p/7249234.html
+清空日志 cat /dev/null > /usr/local/nginx/logs/access.log
+
+keepalived
+启停命令 https://blog.csdn.net/nangeali/article/details/81604381
+安装  https://jingyan.baidu.com/article/b0b63dbfe3ecfd4a48307012.html
+配置 https://blog.csdn.net/xyang81/article/details/52554398
+keepalived之vrrp_script详解 https://www.cnblogs.com/arjenlee/p/9258188.html
+keepalived实现负载均衡 https://www.cnblogs.com/edisonchou/p/4281978.html
+
+
+linux
+安装telnet https://blog.csdn.net/qq_39231550/article/details/79858640
+修改dns https://blog.csdn.net/stella_alash/article/details/76692830
+centos7 修改防火墙 https://www.cnblogs.com/Sungeek/p/8257681.html
+        开启关闭防火墙 https://jingyan.baidu.com/article/49ad8bce97bd965834d8fa8b.html
+修改linux hosts文件 https://www.cnblogs.com/xiaoit/p/3989026.html
+
+
+微信开发
+
+https://open.weixin.qq.com/cgi-bin/showdocument?action=dir_list&t=resource/res_list&verify=1&id=open1453779503&token=&lang=zh_CN
+
+
+java8 
+四大核心接口 https://blog.csdn.net/a879611951/article/details/80104014
+
+springcloud
+https://www.cnblogs.com/ityouknow/p/6791221.html
+eureka告警  https://www.cnblogs.com/gudi/p/8645370.html
+项目打包  The requested profile "pom.xml" could not be activated because it does not exist. 解决方法     https://www.cnblogs.com/loveBetty/p/9441852.html
+
+
+Git   账号: sueneric1987  密码: eric6558512
+如何使用       https://www.liaoxuefeng.com/wiki/896043488029600
+安装和配置     https://www.cnblogs.com/ximiaomiao/p/7140456.html
+常用命令       https://www.cnblogs.com/qianqiannian/p/6008140.html
+git clone报错  https://blog.csdn.net/zmdsjtu/article/details/87353279
+
+soapui返回中文乱码
+https://blog.csdn.net/qq_39658059/article/details/81112768
+
+hadoop
+简介： https://blog.csdn.net/qq_32649581/article/details/82892861
+
+学习： https://www.cnblogs.com/qingyunzong/p/8487180.html
+
+kafka
+https://www.cnblogs.com/qingyunzong/p/9004509.html
+https://www.jianshu.com/u/a40d61a49221
+
+rabbitmq
+https://blog.csdn.net/hellozpc/article/details/81436980
+
+
+
+前后端分离：  https://blog.csdn.net/dream_cat_forever/article/details/80709503
+
+VUE：
+
+搭建   https://www.cnblogs.com/wangenbo/p/8487764.html
+          https://www.cnblogs.com/yanxulan/p/8978732.html
+          https://jingyan.baidu.com/article/5225f26bbb430fe6fa0908ce.html
+文档  https://cn.vuejs.org/v2/guide/installation.html
+
+项目结构说明                              https://www.cnblogs.com/airen123/p/9727914.html
+export和import                            https://www.cnblogs.com/blog-cxj2017522/p/8562536.html
+index.html, App.vue, main.js说明          https://www.cnblogs.com/chenleideblog/p/10484554.html
+报错总结：                                https://blog.csdn.net/weixin_43043994/article/details/82251305
+watch监听使用                             https://www.jianshu.com/p/4847b9e3a2c6
+引入组件                                  https://www.cnblogs.com/huangqiao/p/7800457.html
+vue-resource使用(ajax)                    https://blog.csdn.net/YYxiaobao0726/article/details/86589782
+					  https://www.cnblogs.com/goloving/p/8665421.html
+vue-resource详解包含response属性          https://www.jianshu.com/p/ed9e98731d96
+vue使用axios                              https://www.cnblogs.com/jiangxifanzhouyudu/p/9102908.html
+                                          https://blog.csdn.net/qq_22046267/article/details/81322099
+                                          https://www.cnblogs.com/knighterrant/p/10530981.html
+axios后台获取不到参数                     https://www.jianshu.com/p/ce1a7d69badb
+vue+axios 前端实现登录拦截	          https://www.cnblogs.com/guoxianglei/p/7084506.html
+vue router路由前置后置校验                https://blog.csdn.net/Aimee1608/article/details/79963511
+vue-axios interceptors                    https://www.jianshu.com/p/ff8541e0976a
+                                          https://blog.csdn.net/qq673318522/article/details/55506650
+axios 全局配置                            https://www.cnblogs.com/djjlovedjj/p/9050841.html
+ajax 状态码为0                            https://blog.csdn.net/sinat_34104446/article/details/79652599
+获取本地资源404                           https://blog.csdn.net/yw00yw/article/details/81216933
+element组件                               https://element.eleme.cn/#/zh-CN/component/menu
+vue配置element                            https://jingyan.baidu.com/article/e52e36150c1b3140c70c517b.html
+vue打包运行                               https://blog.csdn.net/u013253924/article/details/81028423
+vue打包后体积过大                         https://blog.csdn.net/qq_39224266/article/details/83894187
+vue+element实现验证码登录                 https://blog.csdn.net/qq_39009348/article/details/81411432
+vue登录页                                 https://www.jianshu.com/p/96143f0917aa
+canvas绘图                                https://blog.csdn.net/weixin_42372054/article/details/82790677
+vue中created mouted方法                   https://blog.csdn.net/liudoris/article/details/80255311
+vue中父子组件通信                         https://www.cnblogs.com/qfstudy/p/9428870.html
+element slot插槽                          https://www.jianshu.com/p/ec17c5161616
+                                          https://www.jianshu.com/p/78d171a59500
+vue调试代码                               https://www.cnblogs.com/aileenli/p/10676653.html
+                                          https://www.cnblogs.com/yuqing6/p/7440549.html
+vue ref用法                               https://www.cnblogs.com/goloving/p/9404099.html
+vue一个组件只能一个div                    https://www.cnblogs.com/pengchenggang/p/10117723.html
+vue+springboot+springsecurity             https://blog.csdn.net/mrain2/article/details/90413844
+vue+springboot+shiro                      https://www.cnblogs.com/yfzhou/p/9813177.html
+                                          https://blog.csdn.net/yhhyhhyhhyhh/article/details/84262689#15vue_230
+vue+springboot+shiro+jwt                  https://www.jianshu.com/p/3b2678fa3999
+vue+jwt                                   https://www.cnblogs.com/tangzhe/p/9227564.html
+springboot + vue + springsecurity系统     http://blog.sina.com.cn/s/blog_18434f41c0102yrmv.html
+vue-element-admin                         https://panjiachen.github.io/vue-element-admin-site/zh/guide/#%E5%8A%9F%E8%83%BD
+基于eladmin的管理例子                     https://docs.auauz.net/#/
+.native修饰符                             父组件监听子组件的事件，需要用到这个修饰符
+vuex                                      https://www.cnblogs.com/chinabin1993/p/9848720.html
+                                          https://baijiahao.baidu.com/s?id=1618794879569468435&wfr=spider&for=pc
+                                          https://zhuanlan.zhihu.com/p/80716895
+springboot+ vue前后端                     https://www.jianshu.com/p/4402545763c8
+
+
+
+IntelliJ Idea
+如何得到idea的Activation code            https://blog.csdn.net/u014508939/article/details/93495234
+IntelliJ IDEA详细配置和使用教程          https://blog.csdn.net/RobertoHuang/article/details/75042116
+主题下载                                 http://www.riaway.com/
+使用说明                                 https://youmeek.gitbooks.io/intellij-idea-tutorial/content/
+idea springboot热部署                    https://blog.csdn.net/hz_940611/article/details/80594788
+idea去除代码中的各种线                   https://blog.csdn.net/best_luxi/article/details/81253316
