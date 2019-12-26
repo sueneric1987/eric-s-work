@@ -149,6 +149,7 @@ SpringMVC之HandlerMethodArgumentResolver和<mvc:argument-resolvers>  http://blog.
 SpringMVC中Controller的@ResponseBody注解分析  http://blog.csdn.net/huaishuming/article/details/31390161
 
 Spring JdbcTemplate用法 http://www.cnblogs.com/caoyc/p/5630622.html
+       rowmapper 用法   https://blog.csdn.net/qq_40132390/article/details/89812857
 
 5、关于InternalResourceViewResolver 会在controller返回的ModelAndView的基础上加上配置的prefix和suffix
 http://blog.csdn.net/zxs9999/article/details/6904147
@@ -256,7 +257,6 @@ The given SOAPAction does not match an operation    http://www.yyjjssnn.cn/artic
 13、spring定时任务quartz   http://kai2008.iteye.com/blog/435675  
 
     MethodInvokingJobDetailFactoryBean		http://dongisland.iteye.com/blog/1452515
-    Quartz使用-入门使用			   http://blog.csdn.net/lotusyangjun/article/details/6450421/
     Spring 3整合Quartz 2实现定时任务	        http://www.cnblogs.com/davidwang456/p/3858980.html
     quartz.properties    http://www.cnblogs.com/phinecos/archive/2008/09/03/1282982.html
     Spring+Quartz 集群		http://soulshard.iteye.com/blog/337886   http://www.cnblogs.com/davidwang456/p/4205237.html
@@ -294,7 +294,7 @@ Hibernate学习 docs:  http://docs.jboss.org/hibernate/orm/
 3、hibernate.cfg.xml详解  http://www.cnblogs.com/jqyp/archive/2010/06/28/1766851.html
 4、spring整合hibernate http://blog.csdn.net/shipeng22022/article/details/20903387
 5、使用的baseDao要继承HibernateDaoSupport  http://blog.csdn.net/baple/article/details/23352059 (但是需要注入HibernateTemplate或者sessionFactory属性）
-6、关于HibernateCallback的使用（可以增加hibernatetemplate的灵活性，使用session增加分页）   http://www.cnblogs.com/excellent-fish/p/3567094.html
+6、关于HibernateCallback的使用（可以增加hibernatetemplate的灵活性，使用session增加分页）   
 7、hibernatetemplate详解 http://blog.csdn.net/cherishme1988/article/details/8031726
 8、Hibernate关系映射 http://blog.csdn.net/huangaigang6688/article/details/7761310
 9、@Temporal的使用 http://blog.csdn.net/notonlyforshe/article/details/7343971
@@ -503,7 +503,7 @@ http://zhidao.baidu.com/link?url=8Uqik9-cNSGrJzudFW7M8gXzRqK8CPs1BQUur4EOfRlOWS9
 30、可以用ajaxSubmit来提交form表单里的文件，但是需要引入jquery.form.js
      http://www.cnblogs.com/Leo_wl/p/4393190.html
      如果返回数据里有中文，ie会有乱码，解决方法 http://blog.csdn.net/hongweigg/article/details/6756278
-31、js下载正常是window.open(url, _'blank')但是当参数过多，Url会长，可以使用post下载 http://blog.csdn.net/w1014074794/article/details/50189447，ie情况下无法导出，需要把iframe去掉
+31、js下载正常是window.open(url, _'blank')但是当参数过多，Url会长，可以使用post下载 https://www.cnblogs.com/sghy/p/8334172.html，ie情况下无法导出，需要把iframe去掉
 32、如果点击事件是在jsp中写好，比如<input type='button' onclick='点击'>这样点击事件只会触发一次，如果在js中绑定事件，$('button').click(function(){})这样会触发两次，因为事件是累加的
     所以需要先解绑$('button').unbind('click').click(function(){})，这样才只会触发一次
     https://segmentfault.com/q/1010000000458432
@@ -521,7 +521,7 @@ http://zhidao.baidu.com/link?url=8Uqik9-cNSGrJzudFW7M8gXzRqK8CPs1BQUur4EOfRlOWS9
 39、jquery has和contains区别 http://www.cnblogs.com/summer-work/p/6209373.html
 40、freemarker教程 http://blog.csdn.net/chenghui0317/article/details/7832474
 41、同一个div里的两个div如果要在同一行，需要设置div1的style="float:left;width:200px" div2的style="float:right;width:200px"才会在同一行
-42、js中format使用  http://www.cnblogs.com/loogn/archive/2011/06/20/2085165.html
+42、js中format使用  https://blog.csdn.net/qq_38366657/article/details/89176336
 43、js中的内置对象arguments http://www.w3school.com.cn/js/pro_js_functions_arguments_object.asp 可用于重载，其实对应实参
 44、js面对对象编程 http://www.ruanyifeng.com/blog/2010/05/object-oriented_javascript_encapsulation.html
 45、const、var、let的区别 http://www.cnblogs.com/ksl666/p/5944718.html
@@ -534,7 +534,7 @@ http://zhidao.baidu.com/link?url=8Uqik9-cNSGrJzudFW7M8gXzRqK8CPs1BQUur4EOfRlOWS9
 
 关于JAVA
 1、Gson 使用 http://www.cnblogs.com/haippy/archive/2012/05/20/2509329.html
-2、内存溢出 http://blog.chinaunix.net/uid-16728139-id-3123809.html
+2、内存溢出 https://www.cnblogs.com/dyh004/p/8296958.html
 3、关于java 通配符 http://shmilyaw-hotmail-com.iteye.com/blog/1405904  使用通配符的collection只能读取数据，不能放入数据
    有关? extends T 和 ? super T的区别 http://www.cnblogs.com/friends-wf/p/3582841.html
 4、java 常用jar包 http://wenku.baidu.com/link?url=CjtPRa_ISOg1OOLHl7-5QKKrIDDIuOnBnWLkrmvK4z4RwrjTU2k0MZSX08fiYHrrGOjeough3H03SiRORCNWgZmfTMmGwjnHU_TVk0N9TXC
@@ -572,6 +572,7 @@ http://zhidao.baidu.com/link?url=8Uqik9-cNSGrJzudFW7M8gXzRqK8CPs1BQUur4EOfRlOWS9
 16、加密方法：  http://www.iteye.com/topic/1122076/  md5后变成代码，需要将byte转换为16进制 http://blog.csdn.net/wxwzy738/article/details/17009583
 17、ehcache   http://raychase.iteye.com/blog/1545906
 18、利用commons-mail.jar发送邮件  http://liangq.iteye.com/blog/1222307 需要添加mail.jar 下载地址http://www.oracle.com/technetwork/java/index-138643.html
+    javamail 发邮件报错解决   https://www.cnblogs.com/zdz8207/p/java-javamail-no-password.html
 19、eclipse xml自动提示 http://jingyan.baidu.com/article/597a064394b77d312b5243ae.html
 20、jstl  http://elf8848.iteye.com/blog/245559
 21、jsp中如果要使用el表达式，如果是servlet2.5之前的jar包，需要在jsp中加入isELIgnored="false"
@@ -605,8 +606,7 @@ http://zhidao.baidu.com/link?url=8Uqik9-cNSGrJzudFW7M8gXzRqK8CPs1BQUur4EOfRlOWS9
     如果ftp服务器没有设置用户名和密码， 用户名填anonymous， 密码任意字符串都可以
 win7可以自己建立本地ftp服务器   http://jingyan.baidu.com/article/9faa7231773bfb473c28cb39.html
 40、Java通过FileWriter的write方法写int型数值时乱码问题解决方法  	http://blog.sina.com.cn/s/blog_9c5d29f70101gjcn.html（是将Int，写 成了对应的asc码)
-41、设置生成文件的编码是在outputsteamwriter出设置编码
-new OutputStreamWriter(new FileOutputStream(file),"gbk")
+41、设置生成文件的编码是在outputsteamwriter出设置编码 new OutputStreamWriter(new FileOutputStream(file),"gbk")
 42、点击按钮下载excel http://blog.csdn.net/evangel_z/article/details/7332535
 43、显示百分比  http://blog.csdn.net/solidwang/article/details/7067742 DecimalFormat
 44、如果以|作为分隔符，string.split必须("\\|") http://www.cnblogs.com/ywl925/p/3849466.html
@@ -618,12 +618,12 @@ new OutputStreamWriter(new FileOutputStream(file),"gbk")
 50、java后台中的url中如果含有中文，需要用URLEncoder.encode(String, "utf-8")进行转码，否则会报Invalid uri
     http://blog.csdn.net/rugaxm/article/details/7804425
 51、常用wsdl地址 ：  http://www.cnblogs.com/younggun/archive/2013/05/22/3092585.html
-52、java 设计原则 ： http://blog.csdn.net/cq361106306/article/details/38708967
+52、java 设计原则 ： https://www.cnblogs.com/pony1223/p/7594803.html
 53、xml默认编码为UTF-8 http://www.cnblogs.com/shishm/archive/2011/12/28/2305397.html
 54、 invalid byte 1 of 1-byte UTF-8 sequence  http://blog.csdn.net/democreen/article/details/6210779
 55、可以在controller加一个静态全局变量，用来计数，可以统计同时调某个url的次数，可以限制同时访问的次数
 56、可以限制上传文件的大小  关于fileitem类 http://blog.csdn.net/smallhorn/article/details/7864658
-57、java list去重，获取重复 http://iteye.blog.163.com/blog/static/18630809620131493238158/
+57、java list去重，获取重复 https://blog.csdn.net/qq_37939251/article/details/90713643
 58、javacore文件分析 http://www.ibm.com/developerworks/cn/websphere/library/techarticles/1406_tuzy_javacore/1406_tuzy_javacore.html
 59、java多线程  http://www.cnblogs.com/0616--ataozhijia/p/4126941.html
 60、enum用法 http://www.cnblogs.com/happyPawpaw/archive/2013/04/09/3009553.html
@@ -659,6 +659,7 @@ new OutputStreamWriter(new FileOutputStream(file),"gbk")
 72、tagsupport http://blog.csdn.net/zljjava/article/details/17420769
 73、tagsupport和simpletagsupport http://liqita.iteye.com/blog/1678363
 74、生成二维码名片  http://blog.csdn.net/lidew521/article/details/24441825
+    带logo和文字的二维码   https://blog.csdn.net/junmoxi/article/details/84637793
 75、MD5 32位大小写  http://blog.csdn.net/cat_book_milk/article/details/52954618
 76、java 注解 http://www.cnblogs.com/Johness/archive/2013/04/17/3026689.html
 77、java 用java解析字符串，如字符串"(1+2/5)*3"当成是数值表达式，进行计算出结果来  http://www.cnblogs.com/zhaoyan001/p/6221447.html
@@ -705,6 +706,10 @@ Kettle  http://blog.csdn.net/yvigmmwfn/article/category/2089811
                             https://www.cnblogs.com/hzpythoner/p/8244922.html
 
 102、Pattern和matcher       https://www.cnblogs.com/gdwkong/articles/7782331.html
+103、java异常详解           https://blog.csdn.net/qq_29229567/article/details/80773970
+104、java压缩文件中文名称乱码  https://blog.csdn.net/evilcry2012/article/details/51122794
+
+
 
 Drools 策略配置使用  http://blog.csdn.net/shuyaji/article/details/4761106
 Drools入门 http://blog.csdn.net/u010416101/article/details/53619704
@@ -783,6 +788,7 @@ http://blog.csdn.net/xb12369/article/details/21156809
 
 44、oracle里的定时任务 http://elim.iteye.com/blog/1983109
 45、oracle多表关联更新  http://blog.itpub.net/29378313/viewspace-1064069/
+46、null详解  https://www.cnblogs.com/tv151579/p/8296540.html
 
 
 关于ibatis
@@ -894,6 +900,8 @@ http://www.ruanyifeng.com/blog/2018/07/json_web_token-tutorial.html
 
 springboot
 
+自动配置原理  https://blog.csdn.net/u014745069/article/details/83820511
+
 介绍      https://www.cnblogs.com/ityouknow/p/5662753.html
 启动报错  https://www.cnblogs.com/QQ931697811/p/6707740.html
 eclipse中创建spring boot  http://blog.csdn.net/clementad/article/details/51334064
@@ -912,6 +920,11 @@ requestparam和requestbody   https://blog.csdn.net/xinluke/article/details/527107
 @RequestParam，@PathParam，@PathVariable https://blog.csdn.net/u011410529/article/details/66974974
 集成swagger           https://www.jianshu.com/p/dcaff30f91cc
                       https://www.cnblogs.com/xiebq/p/9181517.html
+@transactional不起作用   https://blog.csdn.net/zdyueguanyun/article/details/80236401
+                         https://www.cnblogs.com/xiaozhijing/p/8781411.html
+获取resource下资源方法   https://blog.csdn.net/wohaqiyi/article/details/80147999
+html读取本地资源         https://blog.csdn.net/u012958250/article/details/80067450
+profile配置              https://www.cnblogs.com/JohnEricCheng/p/9598289.html
 
 
 
@@ -922,6 +935,13 @@ mybatis
 springboot整合mybatis    https://www.cnblogs.com/wangshen31/p/8744157.html
 找不到xml文件            https://www.cnblogs.com/momoweiduan/p/9844069.html
 传参问题                 https://www.cnblogs.com/xiancheng/p/5543014.html
+xml配置以及路径          https://blog.csdn.net/babyyaoyao/article/details/81096923
+传参方式                 https://blog.csdn.net/qq_35620501/article/details/88014226
+#{}和${}区别             https://www.cnblogs.com/keyi/p/8509155.html
+mysql表分事务安全和非事务安全 https://blog.csdn.net/weixin_38972910/article/details/83864586
+
+
+
 
 Shiro
 
@@ -972,8 +992,11 @@ nginx
 
 https://www.cnblogs.com/wcwnina/p/8728391.html
 
+centos7安装linux  https://blog.csdn.net/qq_37345604/article/details/90034424
+反向代理  https://www.cnblogs.com/ysocean/p/9392908.html
 启停命令 https://www.cnblogs.com/codingcloud/p/5095066.html
-安装后无法访问页面 https://www.cnblogs.com/achengmu/p/9093981.html
+安装后无法访问页面要关闭Linux防火墙 https://www.cnblogs.com/achengmu/p/9093981.html
+关闭防火墙命令             https://www.cnblogs.com/jxldjsn/p/10794171.html
 centos7安装nginx 报./configure: error: C compiler cc is not found   https://blog.csdn.net/u011924665/article/details/53333279
 Nginx配置SSL报错 unknown directive "ssl" https://blog.csdn.net/weiyangdong/article/details/80008543
 负载均衡配置  https://www.cnblogs.com/wzjhoutai/p/6932007.html
@@ -995,15 +1018,28 @@ linux
 centos7 修改防火墙 https://www.cnblogs.com/Sungeek/p/8257681.html
         开启关闭防火墙 https://jingyan.baidu.com/article/49ad8bce97bd965834d8fa8b.html
 修改linux hosts文件 https://www.cnblogs.com/xiaoit/p/3989026.html
+查看磁盘空间     https://blog.csdn.net/davidhopper/article/details/80706457
+挂载硬盘         https://blog.csdn.net/daydayup654/article/details/78788310
+                 https://www.cnblogs.com/lemon-flm/p/7597403.html
+                 https://blog.csdn.net/cscmaker/article/details/7258197
+                 https://blog.csdn.net/mochou111/article/details/81298613
+磁盘分区         https://blog.csdn.net/dufufd/article/details/80253561
+
 
 
 微信开发
 
 https://open.weixin.qq.com/cgi-bin/showdocument?action=dir_list&t=resource/res_list&verify=1&id=open1453779503&token=&lang=zh_CN
+入门   https://www.jianshu.com/p/08d34acafd9a
+开发  https://blog.csdn.net/a1786223749/article/details/80787379
+第三方授权  https://www.cnblogs.com/ganws/p/11572651.html
+            https://blog.csdn.net/yinhaoh/article/details/101351239
 
 
 java8 
 四大核心接口 https://blog.csdn.net/a879611951/article/details/80104014
+stream  https://blog.csdn.net/IO_Field/article/details/54971761
+        https://www.runoob.com/java/java8-streams.html
 
 springcloud
 https://www.cnblogs.com/ityouknow/p/6791221.html
@@ -1013,9 +1049,14 @@ eureka告警  https://www.cnblogs.com/gudi/p/8645370.html
 
 Git   账号: sueneric1987  密码: eric6558512
 如何使用       https://www.liaoxuefeng.com/wiki/896043488029600
+               https://blog.csdn.net/qq_36150631/article/details/81038485
 安装和配置     https://www.cnblogs.com/ximiaomiao/p/7140456.html
-常用命令       https://www.cnblogs.com/qianqiannian/p/6008140.html
+git push常用命令       https://www.cnblogs.com/qianqiannian/p/6008140.html
 git clone报错  https://blog.csdn.net/zmdsjtu/article/details/87353279
+git本地与远程仓库关联  https://blog.csdn.net/qq_41718455/article/details/80861909
+GitHub上传错误（the remote contains the work that you do not have locally)  https://blog.csdn.net/captainnys/article/details/80100616
+ideal使用git   https://www.cnblogs.com/pejsidney/p/9199115.html
+     实战      https://www.jianshu.com/p/dfe1c26bb09a
 
 soapui返回中文乱码
 https://blog.csdn.net/qq_39658059/article/details/81112768
@@ -1030,11 +1071,15 @@ https://www.cnblogs.com/qingyunzong/p/9004509.html
 https://www.jianshu.com/u/a40d61a49221
 
 rabbitmq
-https://blog.csdn.net/hellozpc/article/details/81436980
-
+安装使用           https://blog.csdn.net/hellozpc/article/details/81436980
+springboot整合     https://www.cnblogs.com/ityouknow/p/6120544.html
+使用consumer时，  connection不能关闭， 否则 handleDelivery会不生效
+进阶              https://www.cnblogs.com/hunternet/p/9697754.html
+应用场景           https://blog.csdn.net/hao_yunfeng/article/details/82121351
 
 
 前后端分离：  https://blog.csdn.net/dream_cat_forever/article/details/80709503
+html自适应屏幕：  https://www.cnblogs.com/zoujinhua/p/10316010.html
 
 VUE：
 
@@ -1101,3 +1146,20 @@ IntelliJ IDEA详细配置和使用教程          https://blog.csdn.net/RobertoHuang/arti
 使用说明                                 https://youmeek.gitbooks.io/intellij-idea-tutorial/content/
 idea springboot热部署                    https://blog.csdn.net/hz_940611/article/details/80594788
 idea去除代码中的各种线                   https://blog.csdn.net/best_luxi/article/details/81253316
+
+
+chrome安装ctx插件
+
+https://blog.csdn.net/kaifaxiaoliu/article/details/89509943
+
+
+
+江苏省未来网络创新研究院、南京南智先进光电集成技术研究院、
+南瑞信息系统集成分公司、杭州海康威视数字技术股份有限公司（有南京办事处）、
+中建水务环保公司、国泰君安证券江苏分公司、
+一汽智行科技（南京）有新公司、T3出行、
+图灵人工智能研究院（南京）有限公司、舍弗勒中国、爱立信、
+江苏农垦集团
+ 
+
+
