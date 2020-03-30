@@ -5,6 +5,10 @@ servlet 3.0 项目模块化  http://haohaoxuexi.iteye.com/blog/2017099
 
 获取spring context :  (Bean)SpringContextUtil.getSpringContext().getBean("beanName")
 要使用spring的依赖注入，属性必须要有set方法
+
+
+IOC通俗解释   https://www.cnblogs.com/superjt/p/4311577.html
+
 1、在web.xml中配置
 <context-param>
 		<description>Spring的配置文件路径</description>
@@ -427,7 +431,8 @@ Struts2
 5、struts2引入多个配置文件 在struts.xml中配置 <include file="config/struts-*.xml"></include
 
 Log4J
-http://blog.csdn.net/azheng270/article/details/2173430/
+使用                                   http://blog.csdn.net/azheng270/article/details/2173430/
+log4j的配置ConversionPattern详细讲解   https://blog.csdn.net/baidu_37982584/article/details/82217661
 
 Junit使用
 http://blog.csdn.net/wangpeng047/article/details/9627527
@@ -708,8 +713,10 @@ Kettle  http://blog.csdn.net/yvigmmwfn/article/category/2089811
 102、Pattern和matcher       https://www.cnblogs.com/gdwkong/articles/7782331.html
 103、java异常详解           https://blog.csdn.net/qq_29229567/article/details/80773970
 104、java压缩文件中文名称乱码  https://blog.csdn.net/evilcry2012/article/details/51122794
-
-
+105、线程池    https://www.cnblogs.com/zincredible/p/10984459.html
+106、java 多线程  https://www.cnblogs.com/skywang12345/p/3479224.html#p1
+107、yield可能没效果   https://blog.csdn.net/WYpersist/article/details/80170107
+108、java并发       https://www.jianshu.com/nb/36792038
 
 Drools 策略配置使用  http://blog.csdn.net/shuyaji/article/details/4761106
 Drools入门 http://blog.csdn.net/u010416101/article/details/53619704
@@ -925,7 +932,10 @@ requestparam和requestbody   https://blog.csdn.net/xinluke/article/details/527107
 获取resource下资源方法   https://blog.csdn.net/wohaqiyi/article/details/80147999
 html读取本地资源         https://blog.csdn.net/u012958250/article/details/80067450
 profile配置              https://www.cnblogs.com/JohnEricCheng/p/9598289.html
-
+整合log4j                https://blog.csdn.net/QYHuiiQ/article/details/84707820
+@Async实现异步调用及异步回调Future  https://blog.csdn.net/QYHuiiQ/article/details/85014983
+整合aop                  https://blog.csdn.net/lmb55/article/details/82470388
+execution表达式          https://blog.csdn.net/qq_23167527/article/details/78623434
 
 
 
@@ -939,8 +949,14 @@ xml配置以及路径          https://blog.csdn.net/babyyaoyao/article/details/810969
 传参方式                 https://blog.csdn.net/qq_35620501/article/details/88014226
 #{}和${}区别             https://www.cnblogs.com/keyi/p/8509155.html
 mysql表分事务安全和非事务安全 https://blog.csdn.net/weixin_38972910/article/details/83864586
+动态sql                  https://www.cnblogs.com/xj619/p/11182318.html
+trim使用                 https://blog.csdn.net/wt_better/article/details/80992014
+开启控制台打印sql        https://blog.csdn.net/qq_37495786/article/details/82799910
 
 
+
+sqlserver
+分页查询           https://www.cnblogs.com/yongguang1990/p/10223785.html
 
 
 Shiro
@@ -1027,6 +1043,15 @@ centos7 修改防火墙 https://www.cnblogs.com/Sungeek/p/8257681.html
 
 
 
+mysql
+linux mysql:未找到命令                 https://www.cnblogs.com/jr1260/p/6590860.html
+log-bin                                https://blog.csdn.net/weixin_40896800/article/details/82143078
+                                       https://www.cnblogs.com/pansidong/p/11881801.html
+数据库备份和还原                       https://www.cnblogs.com/itbsl/p/9982410.html
+
+
+
+
 微信开发
 
 https://open.weixin.qq.com/cgi-bin/showdocument?action=dir_list&t=resource/res_list&verify=1&id=open1453779503&token=&lang=zh_CN
@@ -1057,6 +1082,14 @@ git本地与远程仓库关联  https://blog.csdn.net/qq_41718455/article/details/8086190
 GitHub上传错误（the remote contains the work that you do not have locally)  https://blog.csdn.net/captainnys/article/details/80100616
 ideal使用git   https://www.cnblogs.com/pejsidney/p/9199115.html
      实战      https://www.jianshu.com/p/dfe1c26bb09a
+git pull       https://www.jianshu.com/p/118c951fdc29
+git总结        https://blog.csdn.net/weixin_30699831/article/details/101982286
+git本地和远程合并报错        https://blog.csdn.net/u012145252/article/details/80628451
+本地分支关联远程分支         https://blog.csdn.net/lishentao_1122/article/details/89235634
+                                         https://www.jianshu.com/p/489ce4ba9200
+                                         https://blog.csdn.net/u012216131/article/details/84256384
+删除远程用 git rm
+HttpRequestException encountered  https://blog.csdn.net/sinat_29047129/article/details/105121459
 
 soapui返回中文乱码
 https://blog.csdn.net/qq_39658059/article/details/81112768
@@ -1065,6 +1098,13 @@ hadoop
 简介： https://blog.csdn.net/qq_32649581/article/details/82892861
 
 学习： https://www.cnblogs.com/qingyunzong/p/8487180.html
+
+
+
+jenkins
+
+入门： https://blog.csdn.net/qq_37372007/article/details/81586751
+
 
 kafka
 https://www.cnblogs.com/qingyunzong/p/9004509.html
@@ -1152,6 +1192,8 @@ chrome安装ctx插件
 
 https://blog.csdn.net/kaifaxiaoliu/article/details/89509943
 
+
+api平台技术分解    https://www.jianshu.com/p/76446e56f7e4
 
 
 江苏省未来网络创新研究院、南京南智先进光电集成技术研究院、
